@@ -741,27 +741,38 @@ async function submitForm() {
   btn.disabled = true;
   btn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10" stroke-dasharray="30 10" style="animation:spin 1s linear infinite"/></svg> 送信中...';
 
-  const body = currentType === 'jp' ? gatherJP() : gatherForeign();
+  const content = currentType === 'jp' ? gatherJP() : gatherForeign();
   const subject = currentType === 'jp'
     ? '【入居申込】日本国籍 — ' + v('jp-name')
     : '【入居申込】外国籍 — ' + v('f-name') + ' (' + v('f-nationality') + ')';
+  const replyto = currentType === 'jp' ? v('jp-email') : v('f-email');
+
+  const formData = new FormData();
+  formData.append('_subject', subject);
+  formData.append('message', content);
+  formData.append('_replyto', replyto);
+  formData.append('email', replyto);
 
   try {
     const res = await fetch('https://formspree.io/f/mkoeyanj', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-      body: JSON.stringify({ _subject: subject, message: body, _replyto: currentType === 'jp' ? v('jp-email') : v('f-email') })
+      headers: { 'Accept': 'application/json' },
+      body: formData
     });
+    const data = await res.json();
     if (res.ok) {
       showThankYou();
     } else {
-      throw new Error('server error');
+      console.error('Formspree error:', data);
+      alert('送信エラー: ' + (data.error || 'Unknown error'));
+      btn.disabled = false;
+      btn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg> 申込内容を送信する';
     }
   } catch (e) {
-    // Fallback: open mail client
-    const mailto = `mailto:Tokyorentalhome@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-    window.location.href = mailto;
-    showThankYou();
+    console.error('Network error:', e);
+    alert('通信エラーが発生しました。もう一度お試しください。');
+    btn.disabled = false;
+    btn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg> 申込内容を送信する';
   }
 }
 
