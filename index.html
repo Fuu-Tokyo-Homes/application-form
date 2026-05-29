@@ -1,0 +1,780 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>入居申込フォーム / Rental Application</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,600;1,400&family=DM+Mono&family=Noto+Sans+JP:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #F7F6F3; --surface: #FFFFFF; --border: #E2E0D8;
+    --border-focus: #1A1A1A; --text: #1A1A1A; --text-muted: #6B6860;
+    --text-hint: #A8A49C; --accent: #1A1A1A; --accent-text: #FFFFFF;
+    --success: #2D7A4F; --success-bg: #EAF5EF;
+    --info-bg: #EEF4FF; --info-border: #C7D9F8; --info-text: #2B4EA8;
+    --warn-bg: #FFF8EC; --warn-border: #F6D98A; --warn-text: #7A5200;
+    --radius: 10px; --radius-sm: 6px;
+  }
+  body { font-family: 'DM Sans','Noto Sans JP','Hiragino Sans','Yu Gothic',sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; padding: 2rem 1rem 4rem; line-height: 1.6; }
+  .container { max-width: 660px; margin: 0 auto; }
+
+  /* ── SPLASH ── */
+  #splash { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 80vh; text-align: center; gap: 2rem; }
+  .splash-logo { font-size: 13px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 0.25rem; }
+  .splash-title { font-size: 28px; font-weight: 600; line-height: 1.3; }
+  .splash-sub { font-size: 14px; color: var(--text-muted); margin-top: 0.5rem; }
+  .splash-cards { display: flex; gap: 16px; width: 100%; max-width: 420px; }
+  .splash-card { flex: 1; border: 2px solid var(--border); border-radius: var(--radius); padding: 1.5rem 1rem; cursor: pointer; background: var(--surface); transition: all 0.18s; text-align: center; }
+  .splash-card:hover { border-color: var(--accent); box-shadow: 0 4px 16px rgba(0,0,0,0.08); transform: translateY(-2px); }
+  .splash-card-icon { font-size: 32px; margin-bottom: 0.75rem; }
+  .splash-card-label { font-size: 15px; font-weight: 600; }
+  .splash-card-sub { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+
+  /* ── MAIN FORM ── */
+  #form-wrap { display: none; }
+  .header { margin-bottom: 2rem; }
+  .header-badge { display: inline-block; font-size: 11px; font-weight: 600; letter-spacing: 0.06em; color: var(--text-muted); background: var(--border); padding: 4px 10px; border-radius: 20px; margin-bottom: 0.75rem; }
+  .header h1 { font-size: 24px; font-weight: 600; color: var(--text); margin-bottom: 0.4rem; line-height: 1.3; }
+  .header p { font-size: 14px; color: var(--text-muted); }
+  .back-btn { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text-muted); cursor: pointer; margin-bottom: 1.25rem; padding: 6px 0; border: none; background: none; font-family: inherit; }
+  .back-btn:hover { color: var(--text); }
+
+  /* lang switcher (foreign only) */
+  .lang-switcher { display: flex; gap: 6px; margin-bottom: 1.5rem; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 5px; width: fit-content; }
+  .lang-btn { padding: 6px 14px; border-radius: calc(var(--radius) - 3px); border: none; background: transparent; color: var(--text-muted); font-size: 13px; font-weight: 500; font-family: inherit; cursor: pointer; transition: all 0.15s; }
+  .lang-btn.active { background: var(--accent); color: var(--accent-text); }
+  .lang-btn:hover:not(.active) { background: var(--bg); color: var(--text); }
+
+  .progress-bar { height: 3px; background: var(--border); border-radius: 2px; margin-bottom: 1.75rem; overflow: hidden; }
+  .progress-fill { height: 100%; background: var(--accent); border-radius: 2px; width: 0%; transition: width 0.4s ease; }
+
+  .section { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 1rem; overflow: hidden; }
+  .section-header { display: flex; align-items: center; gap: 12px; padding: 1.1rem 1.25rem; border-bottom: 1px solid var(--border); }
+  .sec-num { width: 28px; height: 28px; border-radius: 50%; background: var(--text); color: var(--accent-text); font-size: 12px; font-weight: 600; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .sec-info { flex: 1; }
+  .sec-title { font-size: 14px; font-weight: 600; color: var(--text); }
+  .sec-sub { font-size: 12px; color: var(--text-muted); margin-top: 1px; }
+  .section-body { padding: 1.25rem; }
+
+  .doc-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 1.25rem; }
+  .doc-item { display: flex; align-items: flex-start; gap: 10px; padding: 10px 12px; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 13px; color: var(--text); }
+  .doc-item svg { flex-shrink: 0; color: var(--text-muted); margin-top: 2px; }
+  .doc-item-label { font-weight: 500; }
+  .doc-item-sub { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+  .note-box { display: flex; gap: 8px; background: var(--info-bg); border: 1px solid var(--info-border); border-radius: var(--radius-sm); padding: 10px 12px; margin-bottom: 1rem; font-size: 12px; color: var(--info-text); line-height: 1.6; }
+  .note-box svg { flex-shrink: 0; margin-top: 1px; }
+  .warn-box { display: flex; gap: 8px; background: var(--warn-bg); border: 1px solid var(--warn-border); border-radius: var(--radius-sm); padding: 10px 12px; margin-bottom: 1rem; font-size: 12px; color: var(--warn-text); line-height: 1.6; }
+  .warn-box svg { flex-shrink: 0; margin-top: 1px; }
+
+  .field-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+  .field-grid.full { grid-template-columns: 1fr; }
+  .field-grid.three { grid-template-columns: 1fr 1fr 1fr; }
+  @media (max-width: 480px) { .field-grid, .field-grid.three { grid-template-columns: 1fr; } }
+  .field { display: flex; flex-direction: column; gap: 5px; }
+  .field label { font-size: 12px; font-weight: 500; color: var(--text-muted); letter-spacing: 0.02em; }
+  .field label .opt { font-weight: 400; color: var(--text-hint); font-size: 11px; margin-left: 4px; }
+  .field input, .field select { padding: 9px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg); color: var(--text); font-size: 14px; font-family: inherit; width: 100%; transition: border-color 0.15s, box-shadow 0.15s; -webkit-appearance: none; appearance: none; }
+  .field input:focus, .field select:focus { outline: none; border-color: var(--border-focus); background: var(--surface); box-shadow: 0 0 0 3px rgba(26,26,26,0.07); }
+  .field input::placeholder { color: var(--text-hint); }
+  .select-wrap { position: relative; }
+  .select-wrap::after { content: '▾'; position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: var(--text-muted); pointer-events: none; font-size: 12px; }
+  .select-wrap select { padding-right: 30px; }
+
+  .btn-submit { width: 100%; padding: 14px; border-radius: var(--radius); border: none; background: var(--accent); color: var(--accent-text); font-size: 15px; font-weight: 600; font-family: inherit; cursor: pointer; margin-top: 1.25rem; transition: opacity 0.15s, transform 0.1s; display: flex; align-items: center; justify-content: center; gap: 8px; }
+  .btn-submit:hover { opacity: 0.88; }
+  .btn-submit:active { transform: scale(0.99); }
+  .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .success-banner { display: none; align-items: center; gap: 10px; background: var(--success-bg); border: 1px solid #B6DFC6; border-radius: var(--radius); padding: 12px 16px; margin-top: 12px; font-size: 13px; color: var(--success); font-weight: 500; }
+  .success-banner.show { display: flex; }
+
+  /* ── THANK YOU ── */
+  #thank-you { display: none; flex-direction: column; align-items: center; justify-content: center; min-height: 80vh; text-align: center; gap: 1.5rem; }
+  .ty-icon { width: 64px; height: 64px; border-radius: 50%; background: var(--success-bg); border: 2px solid #B6DFC6; display: flex; align-items: center; justify-content: center; color: var(--success); }
+  .ty-title { font-size: 26px; font-weight: 600; }
+  .ty-sub { font-size: 14px; color: var(--text-muted); max-width: 400px; line-height: 1.7; }
+
+  .footer { text-align: center; font-size: 12px; color: var(--text-hint); margin-top: 2.5rem; }
+  .section-optional { border-style: dashed; }
+  .section-optional .sec-num { background: var(--border); color: var(--text-muted); }
+</style>
+</head>
+<body>
+<div class="container">
+
+<!-- ═══════════════════════ SPLASH ═══════════════════════ -->
+<div id="splash">
+  <div>
+    <div class="splash-logo">Tokyo Rental Home</div>
+    <div class="splash-title">入居申込フォーム<br><span style="font-size:18px;color:var(--text-muted)">Rental Application</span></div>
+    <div class="splash-sub">国籍を選択してください / Please select your nationality</div>
+  </div>
+  <div class="splash-cards">
+    <div class="splash-card" onclick="startForm('jp')">
+      <div class="splash-card-icon">🇯🇵</div>
+      <div class="splash-card-label">日本国籍</div>
+      <div class="splash-card-sub">Japanese national</div>
+    </div>
+    <div class="splash-card" onclick="startForm('foreign')">
+      <div class="splash-card-icon">🌏</div>
+      <div class="splash-card-label">外国籍</div>
+      <div class="splash-card-sub">Foreign national</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════ FORM WRAPPER ═══════════════════════ -->
+<div id="form-wrap">
+  <button class="back-btn" onclick="goBack()">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+    <span id="back-label">戻る</span>
+  </button>
+
+  <!-- lang switcher (foreign only) -->
+  <div class="lang-switcher" id="lang-switcher" style="display:none">
+    <button class="lang-btn active" onclick="setLang('ja',this)">日本語</button>
+    <button class="lang-btn" onclick="setLang('en',this)">English</button>
+    <button class="lang-btn" onclick="setLang('vi',this)">Tiếng Việt</button>
+  </div>
+
+  <div class="header">
+    <div class="header-badge" id="badge">入居申込</div>
+    <h1 id="h1">申込フォーム</h1>
+    <p id="h1-sub">以下の全セクションをご記入いただき、送信ボタンを押してください。</p>
+  </div>
+
+  <div class="progress-bar"><div class="progress-fill" id="progress"></div></div>
+
+  <!-- ══ JP FORM ══ -->
+  <div id="jp-form">
+
+    <!-- S1 -->
+    <div class="section">
+      <div class="section-header">
+        <div class="sec-num">1</div>
+        <div class="sec-info">
+          <div class="sec-title">必要書類・基本情報</div>
+          <div class="sec-sub">以下のいずれかの書類写真をご準備ください</div>
+        </div>
+      </div>
+      <div class="section-body">
+        <div class="doc-list">
+          <div class="doc-item">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="5" width="20" height="14" rx="2"/><circle cx="8" cy="12" r="2.5"/><line x1="13" y1="10" x2="19" y2="10"/><line x1="13" y1="14" x2="17" y2="14"/></svg>
+            <div><div class="doc-item-label">マイナンバーカード（推奨）</div><div class="doc-item-sub">表面・裏面の写真</div></div>
+          </div>
+          <div class="doc-item">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="1" y="3" width="22" height="16" rx="2"/><path d="M1 9h22"/></svg>
+            <div><div class="doc-item-label">運転免許証</div><div class="doc-item-sub">表面・裏面の写真</div></div>
+          </div>
+          <div class="doc-item">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2L3 7v5c0 5 4 9.27 9 10 5-.73 9-5 9-10V7l-9-5z"/></svg>
+            <div><div class="doc-item-label">健康保険証（他の証明書と合わせて）</div><div class="doc-item-sub">表面の写真</div></div>
+          </div>
+        </div>
+        <div class="field-grid full">
+          <div class="field"><label>氏名（漢字）</label><input type="text" id="jp-name" placeholder="例：山田　太郎" oninput="updateProgress('jp')"></div>
+        </div>
+        <div class="field-grid full">
+          <div class="field"><label>氏名（フリガナ）</label><input type="text" id="jp-name-kana" placeholder="例：ヤマダ　タロウ" oninput="updateProgress('jp')"></div>
+        </div>
+        <div class="field-grid full">
+          <div class="field"><label>現在の住所</label><input type="text" id="jp-address" placeholder="例：東京都新宿区..." oninput="updateProgress('jp')"></div>
+        </div>
+        <div class="field-grid">
+          <div class="field"><label>携帯電話番号</label><input type="tel" id="jp-phone" placeholder="090-XXXX-XXXX" oninput="updateProgress('jp')"></div>
+          <div class="field"><label>メールアドレス</label><input type="email" id="jp-email" placeholder="your@email.com" oninput="updateProgress('jp')"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- S2 -->
+    <div class="section">
+      <div class="section-header">
+        <div class="sec-num">2</div>
+        <div class="sec-info">
+          <div class="sec-title">勤務先情報</div>
+          <div class="sec-sub">現在の勤務先の詳細</div>
+        </div>
+      </div>
+      <div class="section-body">
+        <div class="note-box">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          <span>学生でアルバイトをされている方は、正式な雇用契約のあるアルバイト先をご記入ください。</span>
+        </div>
+        <div class="field-grid full"><div class="field"><label>勤務先名</label><input type="text" id="jp-company" oninput="updateProgress('jp')"></div></div>
+        <div class="field-grid full"><div class="field"><label>勤務先住所</label><input type="text" id="jp-company-addr" oninput="updateProgress('jp')"></div></div>
+        <div class="field-grid">
+          <div class="field"><label>勤務先電話番号</label><input type="tel" id="jp-company-phone" oninput="updateProgress('jp')"></div>
+          <div class="field"><label>月収（¥）</label><input type="number" id="jp-salary" placeholder="200000" oninput="updateProgress('jp')"></div>
+        </div>
+        <div class="field-grid full"><div class="field"><label>勤務開始日</label><input type="date" id="jp-startdate" oninput="updateProgress('jp')"></div></div>
+      </div>
+    </div>
+
+    <!-- S3 -->
+    <div class="section">
+      <div class="section-header">
+        <div class="sec-num">3</div>
+        <div class="sec-info">
+          <div class="sec-title">緊急連絡先</div>
+          <div class="sec-sub">ご家族または親しい方</div>
+        </div>
+      </div>
+      <div class="section-body">
+        <div class="warn-box">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          <span>審査申込後 <strong>1〜4週間以内</strong>、担当者からお電話することがあります。ご本人もしくは緊急連絡先の方が<strong>電話に出られる状態</strong>にしておいてください。<br>勤務先情報は任意ですが、記入いただくと審査通過の可能性が高まります。</span>
+        </div>
+        <div class="field-grid">
+          <div class="field"><label>氏名（漢字）</label><input type="text" id="jp-ec-name" oninput="updateProgress('jp')"></div>
+          <div class="field"><label>氏名（フリガナ）</label><input type="text" id="jp-ec-name-kana" placeholder="カタカナ" oninput="updateProgress('jp')"></div>
+        </div>
+        <div class="field-grid">
+          <div class="field"><label>電話番号</label><input type="tel" id="jp-ec-phone" oninput="updateProgress('jp')"></div>
+          <div class="field"><label>生年月日</label><input type="date" id="jp-ec-dob" oninput="updateProgress('jp')"></div>
+        </div>
+        <div class="field-grid">
+          <div class="field"><label>月収（¥）<span class="opt">任意</span></label><input type="number" id="jp-ec-salary" oninput="updateProgress('jp')"></div>
+          <div class="field"></div>
+        </div>
+        <div class="field-grid full"><div class="field"><label>住所</label><input type="text" id="jp-ec-addr" oninput="updateProgress('jp')"></div></div>
+        <div class="field-grid full"><div class="field"><label>勤務先名<span class="opt">任意（記入で審査に有利）</span></label><input type="text" id="jp-ec-company" oninput="updateProgress('jp')"></div></div>
+        <div class="field-grid">
+          <div class="field"><label>勤務先住所<span class="opt">任意</span></label><input type="text" id="jp-ec-company-addr" oninput="updateProgress('jp')"></div>
+          <div class="field"><label>会社電話番号<span class="opt">任意</span></label><input type="tel" id="jp-ec-company-phone" oninput="updateProgress('jp')"></div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /jp-form -->
+
+  <!-- ══ FOREIGN FORM ══ -->
+  <div id="foreign-form" style="display:none">
+
+    <!-- S1 -->
+    <div class="section">
+      <div class="section-header">
+        <div class="sec-num">1</div>
+        <div class="sec-info">
+          <div class="sec-title" id="f-s1-title">必要書類・基本情報</div>
+          <div class="sec-sub" id="f-s1-sub">各書類の写真を鮮明に準備してください</div>
+        </div>
+      </div>
+      <div class="section-body">
+        <div class="doc-list">
+          <div class="doc-item">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="16" rx="2"/><line x1="7" y1="9" x2="17" y2="9"/><line x1="7" y1="13" x2="13" y2="13"/></svg>
+            <div><div class="doc-item-label" id="f-doc1">パスポート</div><div class="doc-item-sub" id="f-doc1s">顔写真ページの写真</div></div>
+          </div>
+          <div class="doc-item">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="5" width="20" height="14" rx="2"/><circle cx="8" cy="12" r="2.5"/><line x1="13" y1="10" x2="19" y2="10"/><line x1="13" y1="14" x2="17" y2="14"/></svg>
+            <div><div class="doc-item-label" id="f-doc2">在留カード</div><div class="doc-item-sub" id="f-doc2s">表面・裏面の写真</div></div>
+          </div>
+          <div class="doc-item">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2L3 7v5c0 5 4 9.27 9 10 5-.73 9-5 9-10V7l-9-5z"/></svg>
+            <div><div class="doc-item-label" id="f-doc3">マイナンバーカード / 健康保険証</div><div class="doc-item-sub" id="f-doc3s">表面・裏面の写真（お持ちの場合）</div></div>
+          </div>
+          <div class="doc-item">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M2 10h20"/><path d="M6 14h4"/></svg>
+            <div><div class="doc-item-label" id="f-doc4">学生証</div><div class="doc-item-sub" id="f-doc4s">表面・裏面の写真（学生の場合）</div></div>
+          </div>
+        </div>
+        <div class="field-grid full">
+          <div class="field"><label id="f-lbl-name">氏名（ローマ字・パスポート通り）</label><input type="text" id="f-name" placeholder="YAMADA TARO" oninput="updateProgress('foreign')"></div>
+        </div>
+        <div class="field-grid full">
+          <div class="field"><label id="f-lbl-name-kana">氏名（カタカナ）<span class="opt" id="f-lbl-name-kana-opt">※日本語氏名がある場合</span></label><input type="text" id="f-name-kana" placeholder="ヤマダ　タロウ" oninput="updateProgress('foreign')"></div>
+        </div>
+        <div class="field-grid full">
+          <div class="field"><label id="f-lbl-nationality">国籍 / Nationality</label><input type="text" id="f-nationality" placeholder="Vietnam / ベトナム" oninput="updateProgress('foreign')"></div>
+        </div>
+        <div class="field-grid full">
+          <div class="field"><label id="f-lbl-address">現在の住所（日本国内）</label><input type="text" id="f-address" placeholder="例：東京都新宿区..." oninput="updateProgress('foreign')"></div>
+        </div>
+        <div class="field-grid">
+          <div class="field"><label id="f-lbl-phone">携帯電話番号</label><input type="tel" id="f-phone" placeholder="+81 90-XXXX-XXXX" oninput="updateProgress('foreign')"></div>
+          <div class="field"><label id="f-lbl-email">メールアドレス</label><input type="email" id="f-email" placeholder="your@email.com" oninput="updateProgress('foreign')"></div>
+        </div>
+        <!-- Japanese level -->
+        <div class="field-grid full" style="margin-top:4px">
+          <div class="field">
+            <label id="f-lbl-jlpt">日本語能力 / Japanese Ability</label>
+            <div class="select-wrap">
+              <select id="f-jlpt" onchange="updateProgress('foreign')">
+                <option value="">— 選択してください / Please select —</option>
+                <option value="ネイティブレベル / Native">ネイティブレベル / Native</option>
+                <option value="N1（ビジネス使用可）">N1（ビジネス使用可）</option>
+                <option value="N2（日常会話問題なし）">N2（日常会話問題なし）</option>
+                <option value="N3（基本的な会話が可能）">N3（基本的な会話が可能）</option>
+                <option value="N4（簡単な会話のみ）">N4（簡単な会話のみ）</option>
+                <option value="N5 / ほぼ話せない / Beginner">N5 / ほぼ話せない / Beginner</option>
+                <option value="話せない / Cannot speak Japanese">話せない / Cannot speak Japanese</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="note-box" style="margin-top:8px">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          <span id="f-jlpt-note">この情報は大家さん・管理会社とのコミュニケーション能力の確認のために使用されます。</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- S2 -->
+    <div class="section">
+      <div class="section-header">
+        <div class="sec-num">2</div>
+        <div class="sec-info">
+          <div class="sec-title" id="f-s2-title">勤務先情報</div>
+          <div class="sec-sub" id="f-s2-sub">現在の勤務先の詳細</div>
+        </div>
+      </div>
+      <div class="section-body">
+        <div class="note-box">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          <span id="f-s2-note">学生でアルバイトをされている方は、正式な雇用契約のあるアルバイト先をご記入ください。</span>
+        </div>
+        <div class="field-grid full"><div class="field"><label id="f-lbl-company">勤務先名</label><input type="text" id="f-company" oninput="updateProgress('foreign')"></div></div>
+        <div class="field-grid full"><div class="field"><label id="f-lbl-company-addr">勤務先住所</label><input type="text" id="f-company-addr" oninput="updateProgress('foreign')"></div></div>
+        <div class="field-grid">
+          <div class="field"><label id="f-lbl-company-phone">勤務先電話番号</label><input type="tel" id="f-company-phone" oninput="updateProgress('foreign')"></div>
+          <div class="field"><label id="f-lbl-salary">月収（¥）</label><input type="number" id="f-salary" placeholder="200000" oninput="updateProgress('foreign')"></div>
+        </div>
+        <div class="field-grid full"><div class="field"><label id="f-lbl-startdate">勤務開始日</label><input type="date" id="f-startdate" oninput="updateProgress('foreign')"></div></div>
+      </div>
+    </div>
+
+    <!-- S3 -->
+    <div class="section">
+      <div class="section-header">
+        <div class="sec-num">3</div>
+        <div class="sec-info">
+          <div class="sec-title" id="f-s3-title">日本国内の緊急連絡先</div>
+          <div class="sec-sub" id="f-s3-sub">日本語が少し話せる方</div>
+        </div>
+      </div>
+      <div class="section-body">
+        <div class="warn-box">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          <span id="f-s3-note">審査申込後 <strong>1〜4週間以内</strong>、担当者からお電話することがあります。緊急連絡先の方が<strong>電話に出られる状態</strong>にしておいてください。<br>勤務先情報は任意ですが、記入いただくと審査通過の可能性が高まります。</span>
+        </div>
+        <div class="field-grid">
+          <div class="field"><label id="f-lbl-ec-name">氏名（漢字）</label><input type="text" id="f-ec-name" oninput="updateProgress('foreign')"></div>
+          <div class="field"><label id="f-lbl-ec-name-kana">氏名（フリガナ）</label><input type="text" id="f-ec-name-kana" placeholder="カタカナ" oninput="updateProgress('foreign')"></div>
+        </div>
+        <div class="field-grid">
+          <div class="field"><label id="f-lbl-ec-phone">電話番号</label><input type="tel" id="f-ec-phone" oninput="updateProgress('foreign')"></div>
+          <div class="field"><label id="f-lbl-ec-dob">生年月日</label><input type="date" id="f-ec-dob" oninput="updateProgress('foreign')"></div>
+        </div>
+        <div class="field-grid">
+          <div class="field"><label id="f-lbl-ec-salary">月収（¥）<span class="opt">任意</span></label><input type="number" id="f-ec-salary" oninput="updateProgress('foreign')"></div>
+          <div class="field"></div>
+        </div>
+        <div class="field-grid full"><div class="field"><label id="f-lbl-ec-addr">住所</label><input type="text" id="f-ec-addr" oninput="updateProgress('foreign')"></div></div>
+        <div class="field-grid full"><div class="field"><label id="f-lbl-ec-company">勤務先名<span class="opt">任意（記入で審査に有利）</span></label><input type="text" id="f-ec-company" oninput="updateProgress('foreign')"></div></div>
+        <div class="field-grid">
+          <div class="field"><label id="f-lbl-ec-company-addr">勤務先住所<span class="opt">任意</span></label><input type="text" id="f-ec-company-addr" oninput="updateProgress('foreign')"></div>
+          <div class="field"><label id="f-lbl-ec-company-phone">会社電話番号<span class="opt">任意</span></label><input type="tel" id="f-ec-company-phone" oninput="updateProgress('foreign')"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- S4 -->
+    <div class="section">
+      <div class="section-header">
+        <div class="sec-num">4</div>
+        <div class="sec-info">
+          <div class="sec-title" id="f-s4-title">母国の連絡先</div>
+          <div class="sec-sub" id="f-s4-sub">父または母など</div>
+        </div>
+      </div>
+      <div class="section-body">
+        <div class="warn-box">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          <span id="f-s4-note">審査後 <strong>1〜4週間以内</strong>にこちらの番号へお電話する場合があります。<strong>電話に出られる状態</strong>にしておいてください。</span>
+        </div>
+        <div class="field-grid">
+          <div class="field"><label id="f-lbl-vn-name">氏名</label><input type="text" id="f-vn-name" oninput="updateProgress('foreign')"></div>
+          <div class="field"><label id="f-lbl-vn-dob">生年月日</label><input type="date" id="f-vn-dob" oninput="updateProgress('foreign')"></div>
+        </div>
+        <div class="field-grid full"><div class="field"><label id="f-lbl-vn-addr">住所（母国）</label><input type="text" id="f-vn-addr" oninput="updateProgress('foreign')"></div></div>
+        <div class="field-grid full"><div class="field"><label id="f-lbl-vn-phone">電話番号（国番号含む）</label><input type="tel" id="f-vn-phone" placeholder="+84 90-XXXX-XXXX" oninput="updateProgress('foreign')"></div></div>
+      </div>
+    </div>
+
+  </div><!-- /foreign-form -->
+
+  <button class="btn-submit" id="submit-btn" onclick="submitForm()">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+    <span id="submit-label">申込内容を送信する</span>
+  </button>
+  <div class="success-banner" id="success-banner">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+    <span id="success-text">送信しました！</span>
+  </div>
+  <div class="footer"><p id="footer-text">記入済みフォームと書類の写真を担当者にお送りください。</p></div>
+</div><!-- /form-wrap -->
+
+<!-- ═══════════════════════ THANK YOU ═══════════════════════ -->
+<div id="thank-you">
+  <div class="ty-icon">
+    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+  </div>
+  <div class="ty-title">ありがとうございます！</div>
+  <div class="ty-sub">お申込み内容を受け付けました。<br>担当者よりご連絡いたしますので、しばらくお待ちください。<br><br>Thank you! We have received your application and will be in touch shortly.</div>
+</div>
+
+</div><!-- /container -->
+
+<script>
+/* ════════════════════════════════════
+   TRANSLATIONS
+════════════════════════════════════ */
+const T = {
+  ja: {
+    badge:'入居申込（外国籍）', h1:'申込フォーム', h1sub:'以下の全セクションをご記入いただき、送信ボタンを押してください。',
+    s1:'必要書類・基本情報', s1s:'各書類の写真を鮮明に準備してください',
+    doc1:'パスポート', doc1s:'顔写真ページの写真',
+    doc2:'在留カード', doc2s:'表面・裏面の写真',
+    doc3:'マイナンバーカード / 健康保険証', doc3s:'表面・裏面の写真（お持ちの場合）',
+    doc4:'学生証', doc4s:'表面・裏面の写真（学生の場合）',
+    name:'氏名（ローマ字・パスポート通り）', nameKana:'氏名（カタカナ）', nameKanaOpt:'※日本語氏名がある場合',
+    nationality:'国籍 / Nationality',
+    address:'現在の住所（日本国内）', phone:'携帯電話番号', email:'メールアドレス',
+    jlpt:'日本語能力 / Japanese Ability',
+    jlptNote:'この情報は大家さん・管理会社とのコミュニケーション能力の確認のために使用されます。',
+    s2:'勤務先情報', s2s:'現在の勤務先の詳細',
+    s2note:'学生でアルバイトをされている方は、正式な雇用契約のあるアルバイト先をご記入ください。',
+    company:'勤務先名', compAddr:'勤務先住所', compPhone:'勤務先電話番号',
+    salary:'月収（¥）', startdate:'勤務開始日',
+    s3:'日本国内の緊急連絡先', s3s:'日本語が少し話せる方',
+    s3note:'審査申込後 1〜4週間以内、担当者からお電話することがあります。緊急連絡先の方が電話に出られる状態にしておいてください。勤務先情報は任意ですが、記入いただくと審査通過の可能性が高まります。',
+    ecName:'氏名（漢字）', ecNameKana:'氏名（フリガナ）',
+    ecPhone:'電話番号', ecDob:'生年月日',
+    ecSalary:'月収（¥）', ecAddr:'住所',
+    ecCompany:'勤務先名', ecCompAddr:'勤務先住所', ecCompPhone:'会社電話番号',
+    s4:'母国の連絡先', s4s:'父または母など',
+    s4note:'審査後 1〜4週間以内にこちらの番号へお電話する場合があります。電話に出られる状態にしておいてください。',
+    vnName:'氏名', vnDob:'生年月日', vnAddr:'住所（母国）', vnPhone:'電話番号（国番号含む）',
+    submitBtn:'申込内容を送信する',
+    success:'送信しました！', footer:'記入済みフォームと書類の写真を担当者にお送りください。',
+    back:'戻る'
+  },
+  en: {
+    badge:'Rental Application (Foreign National)', h1:'Application Form', h1sub:'Fill in all sections, then press the submit button.',
+    s1:'Required documents & basic info', s1s:'Prepare clear photos of each item',
+    doc1:'Passport', doc1s:'Photo page',
+    doc2:'Residence card (在留カード)', doc2s:'Front & back photo',
+    doc3:'My Number card / Health insurance card', doc3s:'Front & back photo — if you have one',
+    doc4:'Student ID (学生証)', doc4s:'Front & back photo — if applicable',
+    name:'Full name (Romaji / as in passport)', nameKana:'Name in Katakana', nameKanaOpt:'if you have a Japanese name',
+    nationality:'Nationality',
+    address:'Current address in Japan', phone:'Mobile phone number', email:'Email address',
+    jlpt:'Japanese ability level',
+    jlptNote:'This is used to assess communication with the landlord or management company.',
+    s2:'Workplace information', s2s:'Current employer details',
+    s2note:'If you are a student with a part-time job, please enter that workplace information (with official contract).',
+    company:'Workplace name', compAddr:'Workplace address', compPhone:'Workplace phone',
+    salary:'Monthly salary (¥)', startdate:'Employment start date',
+    s3:'Emergency contact in Japan', s3s:'Someone who speaks some Japanese',
+    s3note:'Within 1–4 weeks of applying, a staff member may call. Please ensure your emergency contact is available to answer the phone. Employer info is optional but helps with approval.',
+    ecName:'Full name (Kanji)', ecNameKana:'Full name (Furigana)',
+    ecPhone:'Phone number', ecDob:'Date of birth',
+    ecSalary:'Monthly salary (¥)', ecAddr:'Home address',
+    ecCompany:'Workplace name', ecCompAddr:'Workplace address', ecCompPhone:'Company phone',
+    s4:'Contact person in home country', s4s:'Father, mother, etc.',
+    s4note:'Within 1–4 weeks of applying, a staff member may call this number. Please ensure they are available to answer.',
+    vnName:'Full name', vnDob:'Date of birth', vnAddr:'Address (home country)', vnPhone:'Phone (include country code)',
+    submitBtn:'Submit Application',
+    success:'Submitted!', footer:'Please also send document photos to your agent.',
+    back:'Back'
+  },
+  vi: {
+    badge:'Đăng Ký Thuê Nhà (Người Nước Ngoài)', h1:'Form Đăng Ký', h1sub:'Điền đầy đủ tất cả các phần và nhấn nút gửi.',
+    s1:'Giấy tờ cần thiết & thông tin cơ bản', s1s:'Chuẩn bị ảnh chụp rõ ràng từng giấy tờ',
+    doc1:'Hộ chiếu (Passport)', doc1s:'Ảnh trang có ảnh mặt',
+    doc2:'Thẻ cư trú (在留カード)', doc2s:'Ảnh mặt trước & sau',
+    doc3:'Thẻ My Number / Thẻ bảo hiểm y tế', doc3s:'Ảnh 2 mặt — nếu có',
+    doc4:'Thẻ sinh viên (学生証)', doc4s:'Ảnh 2 mặt — nếu có',
+    name:'Họ và tên (chữ La-tinh, theo hộ chiếu)', nameKana:'Tên bằng Katakana', nameKanaOpt:'nếu có tên tiếng Nhật',
+    nationality:'Quốc tịch / Nationality',
+    address:'Địa chỉ hiện tại tại Nhật', phone:'Số điện thoại di động', email:'Địa chỉ email',
+    jlpt:'Trình độ tiếng Nhật',
+    jlptNote:'Thông tin này dùng để đánh giá khả năng giao tiếp với chủ nhà hoặc công ty quản lý.',
+    s2:'Thông tin nơi làm việc', s2s:'Chi tiết về công ty hiện tại',
+    s2note:'Nếu bạn là sinh viên và có đi làm thêm, hãy điền thông tin nơi làm thêm có hợp đồng chính thức.',
+    company:'Tên công ty', compAddr:'Địa chỉ công ty', compPhone:'Điện thoại công ty',
+    salary:'Thu nhập hàng tháng (¥)', startdate:'Ngày bắt đầu làm việc',
+    s3:'Liên lạc khẩn cấp tại Nhật', s3s:'Người biết nói một chút tiếng Nhật',
+    s3note:'Trong vòng 1–4 tuần sau khi đăng ký, nhân viên có thể gọi điện. Vui lòng đảm bảo người liên lạc khẩn cấp sẵn sàng nghe điện thoại. Thông tin công ty là tùy chọn nhưng giúp tăng khả năng được duyệt.',
+    ecName:'Họ và tên (Kanji)', ecNameKana:'Họ và tên (Furigana)',
+    ecPhone:'Số điện thoại', ecDob:'Ngày sinh',
+    ecSalary:'Thu nhập hàng tháng (¥)', ecAddr:'Địa chỉ nhà',
+    ecCompany:'Tên nơi làm việc', ecCompAddr:'Địa chỉ nơi làm việc', ecCompPhone:'Điện thoại công ty',
+    s4:'Liên lạc tại nước bản địa', s4s:'Bố, mẹ hoặc người thân',
+    s4note:'Trong vòng 1–4 tuần sau khi đăng ký, nhân viên có thể gọi vào số này. Vui lòng đảm bảo người đó sẵn sàng nghe điện thoại.',
+    vnName:'Họ và tên', vnDob:'Ngày sinh', vnAddr:'Địa chỉ (nước bản địa)', vnPhone:'Số điện thoại (kèm mã quốc gia)',
+    submitBtn:'Gửi đơn đăng ký',
+    success:'Đã gửi!', footer:'Hãy gửi thêm ảnh giấy tờ cho nhân viên tư vấn.',
+    back:'Quay lại'
+  }
+};
+
+let currentType = null;
+let currentLang = 'ja';
+
+function startForm(type) {
+  currentType = type;
+  document.getElementById('splash').style.display = 'none';
+  document.getElementById('form-wrap').style.display = 'block';
+  if (type === 'jp') {
+    document.getElementById('jp-form').style.display = 'block';
+    document.getElementById('foreign-form').style.display = 'none';
+    document.getElementById('lang-switcher').style.display = 'none';
+    document.getElementById('badge').textContent = '入居申込（日本国籍）';
+    document.getElementById('h1').textContent = '申込フォーム';
+    document.getElementById('h1-sub').textContent = '以下の全セクションをご記入いただき、送信ボタンを押してください。';
+    document.getElementById('submit-label').textContent = '申込内容を送信する';
+    document.getElementById('footer-text').textContent = '記入済みフォームと書類の写真を担当者にお送りください。';
+    document.getElementById('back-label').textContent = '戻る';
+    updateProgress('jp');
+  } else {
+    document.getElementById('jp-form').style.display = 'none';
+    document.getElementById('foreign-form').style.display = 'block';
+    document.getElementById('lang-switcher').style.display = 'flex';
+    applyLang('ja');
+    updateProgress('foreign');
+  }
+}
+
+function goBack() {
+  document.getElementById('form-wrap').style.display = 'none';
+  document.getElementById('splash').style.display = 'flex';
+  currentType = null;
+}
+
+function setLang(l, btn) {
+  currentLang = l;
+  document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  applyLang(l);
+}
+
+function set(id, txt) { const el = document.getElementById(id); if (el) el.textContent = txt; }
+
+function applyLang(l) {
+  const t = T[l];
+  set('badge', t.badge); set('h1', t.h1); set('h1-sub', t.h1sub);
+  set('f-s1-title', t.s1); set('f-s1-sub', t.s1s);
+  set('f-doc1', t.doc1); set('f-doc1s', t.doc1s);
+  set('f-doc2', t.doc2); set('f-doc2s', t.doc2s);
+  set('f-doc3', t.doc3); set('f-doc3s', t.doc3s);
+  set('f-doc4', t.doc4); set('f-doc4s', t.doc4s);
+  set('f-lbl-name', t.name);
+  set('f-lbl-name-kana', t.nameKana); set('f-lbl-name-kana-opt', t.nameKanaOpt);
+  set('f-lbl-nationality', t.nationality);
+  set('f-lbl-address', t.address); set('f-lbl-phone', t.phone); set('f-lbl-email', t.email);
+  set('f-lbl-jlpt', t.jlpt); set('f-jlpt-note', t.jlptNote);
+  set('f-s2-title', t.s2); set('f-s2-sub', t.s2s); set('f-s2-note', t.s2note);
+  set('f-lbl-company', t.company); set('f-lbl-company-addr', t.compAddr); set('f-lbl-company-phone', t.compPhone);
+  set('f-lbl-salary', t.salary); set('f-lbl-startdate', t.startdate);
+  set('f-s3-title', t.s3); set('f-s3-sub', t.s3s); set('f-s3-note', t.s3note);
+  set('f-lbl-ec-name', t.ecName); set('f-lbl-ec-name-kana', t.ecNameKana);
+  set('f-lbl-ec-phone', t.ecPhone); set('f-lbl-ec-dob', t.ecDob);
+  set('f-lbl-ec-salary', t.ecSalary); set('f-lbl-ec-addr', t.ecAddr);
+  set('f-lbl-ec-company', t.ecCompany); set('f-lbl-ec-company-addr', t.ecCompAddr); set('f-lbl-ec-company-phone', t.ecCompPhone);
+  set('f-s4-title', t.s4); set('f-s4-sub', t.s4s); set('f-s4-note', t.s4note);
+  set('f-lbl-vn-name', t.vnName); set('f-lbl-vn-dob', t.vnDob);
+  set('f-lbl-vn-addr', t.vnAddr); set('f-lbl-vn-phone', t.vnPhone);
+  set('submit-label', t.submitBtn);
+  set('footer-text', t.footer);
+  set('back-label', t.back);
+  // Update JLPT select options for EN/VI
+  updateJlptOptions(l);
+}
+
+function updateJlptOptions(l) {
+  const sel = document.getElementById('f-jlpt');
+  const opts = {
+    ja: [
+      ['', '— 選択してください —'],
+      ['ネイティブレベル', 'ネイティブレベル / Native'],
+      ['N1（ビジネス使用可）', 'N1（ビジネス使用可）'],
+      ['N2（日常会話問題なし）', 'N2（日常会話問題なし）'],
+      ['N3（基本的な会話が可能）', 'N3（基本的な会話が可能）'],
+      ['N4（簡単な会話のみ）', 'N4（簡単な会話のみ）'],
+      ['N5 / ほぼ話せない', 'N5 / ほぼ話せない'],
+      ['話せない', '話せない / Cannot speak'],
+    ],
+    en: [
+      ['', '— Please select —'],
+      ['Native level', 'Native level'],
+      ['N1 (Business level)', 'N1 (Business level)'],
+      ['N2 (Daily conversation OK)', 'N2 (Daily conversation OK)'],
+      ['N3 (Basic conversation)', 'N3 (Basic conversation)'],
+      ['N4 (Simple phrases only)', 'N4 (Simple phrases only)'],
+      ['N5 / Beginner', 'N5 / Beginner'],
+      ['Cannot speak Japanese', 'Cannot speak Japanese'],
+    ],
+    vi: [
+      ['', '— Vui lòng chọn —'],
+      ['Trình độ bản ngữ', 'Trình độ bản ngữ (Native)'],
+      ['N1 (Dùng được trong công việc)', 'N1 (Dùng được trong công việc)'],
+      ['N2 (Giao tiếp hàng ngày tốt)', 'N2 (Giao tiếp hàng ngày tốt)'],
+      ['N3 (Giao tiếp cơ bản được)', 'N3 (Giao tiếp cơ bản được)'],
+      ['N4 (Chỉ câu đơn giản)', 'N4 (Chỉ câu đơn giản)'],
+      ['N5 / Sơ cấp', 'N5 / Sơ cấp'],
+      ['Không nói được tiếng Nhật', 'Không nói được tiếng Nhật'],
+    ]
+  };
+  const cur = sel.value;
+  sel.innerHTML = opts[l].map(([v, txt]) => `<option value="${v}">${txt}</option>`).join('');
+  sel.value = cur;
+}
+
+/* ── Progress ── */
+const JP_FIELDS = ['jp-name','jp-name-kana','jp-address','jp-phone','jp-email',
+  'jp-company','jp-company-addr','jp-company-phone','jp-salary','jp-startdate',
+  'jp-ec-name','jp-ec-phone','jp-ec-dob','jp-ec-addr'];
+const F_FIELDS = ['f-name','f-nationality','f-address','f-phone','f-email','f-jlpt',
+  'f-company','f-company-addr','f-company-phone','f-salary','f-startdate',
+  'f-ec-name','f-ec-phone','f-ec-dob','f-ec-addr',
+  'f-vn-name','f-vn-phone'];
+
+function updateProgress(type) {
+  const fields = type === 'jp' ? JP_FIELDS : F_FIELDS;
+  const filled = fields.filter(id => {
+    const el = document.getElementById(id);
+    return el && el.value.trim() !== '';
+  }).length;
+  document.getElementById('progress').style.width = Math.round((filled / fields.length) * 100) + '%';
+}
+
+/* ── Gather data ── */
+function v(id) { const el = document.getElementById(id); return el ? (el.value.trim() || '—') : '—'; }
+
+function gatherJP() {
+  return [
+    '【入居申込フォーム — 日本国籍】',
+    '',
+    '=== 必要書類 ===',
+    '[ ] マイナンバーカード または 運転免許証（表面・裏面）',
+    '',
+    '=== 基本情報 ===',
+    '氏名（漢字）: ' + v('jp-name'),
+    '氏名（フリガナ）: ' + v('jp-name-kana'),
+    '現在の住所: ' + v('jp-address'),
+    '携帯電話番号: ' + v('jp-phone'),
+    'メールアドレス: ' + v('jp-email'),
+    '',
+    '=== 勤務先情報 ===',
+    '勤務先名: ' + v('jp-company'),
+    '勤務先住所: ' + v('jp-company-addr'),
+    '勤務先電話番号: ' + v('jp-company-phone'),
+    '月収: ¥' + v('jp-salary'),
+    '勤務開始日: ' + v('jp-startdate'),
+    '',
+    '=== 緊急連絡先 ===',
+    '氏名（漢字）: ' + v('jp-ec-name'),
+    '氏名（フリガナ）: ' + v('jp-ec-name-kana'),
+    '電話番号: ' + v('jp-ec-phone'),
+    '生年月日: ' + v('jp-ec-dob'),
+    '月収: ¥' + v('jp-ec-salary'),
+    '住所: ' + v('jp-ec-addr'),
+    '勤務先名: ' + v('jp-ec-company'),
+    '勤務先住所: ' + v('jp-ec-company-addr'),
+    '会社電話番号: ' + v('jp-ec-company-phone'),
+  ].join('\n');
+}
+
+function gatherForeign() {
+  return [
+    '【入居申込フォーム — 外国籍】',
+    '',
+    '=== 必要書類 ===',
+    '[ ] パスポート（顔写真ページ）',
+    '[ ] 在留カード（表面・裏面）',
+    '[ ] マイナンバーカード / 健康保険証（お持ちの場合）',
+    '[ ] 学生証（学生の場合）',
+    '',
+    '=== 基本情報 ===',
+    '氏名（ローマ字）: ' + v('f-name'),
+    '氏名（カタカナ）: ' + v('f-name-kana'),
+    '国籍: ' + v('f-nationality'),
+    '現在の住所（日本）: ' + v('f-address'),
+    '携帯電話番号: ' + v('f-phone'),
+    'メールアドレス: ' + v('f-email'),
+    '日本語能力: ' + v('f-jlpt'),
+    '',
+    '=== 勤務先情報 ===',
+    '勤務先名: ' + v('f-company'),
+    '勤務先住所: ' + v('f-company-addr'),
+    '勤務先電話番号: ' + v('f-company-phone'),
+    '月収: ¥' + v('f-salary'),
+    '勤務開始日: ' + v('f-startdate'),
+    '',
+    '=== 緊急連絡先（日本国内）===',
+    '氏名（漢字）: ' + v('f-ec-name'),
+    '氏名（フリガナ）: ' + v('f-ec-name-kana'),
+    '電話番号: ' + v('f-ec-phone'),
+    '生年月日: ' + v('f-ec-dob'),
+    '月収: ¥' + v('f-ec-salary'),
+    '住所: ' + v('f-ec-addr'),
+    '勤務先名: ' + v('f-ec-company'),
+    '勤務先住所: ' + v('f-ec-company-addr'),
+    '会社電話番号: ' + v('f-ec-company-phone'),
+    '',
+    '=== 母国の連絡先 ===',
+    '氏名: ' + v('f-vn-name'),
+    '生年月日: ' + v('f-vn-dob'),
+    '住所（母国）: ' + v('f-vn-addr'),
+    '電話番号: ' + v('f-vn-phone'),
+  ].join('\n');
+}
+
+/* ── Submit via Formspree ── */
+async function submitForm() {
+  const btn = document.getElementById('submit-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10" stroke-dasharray="30 10" style="animation:spin 1s linear infinite"/></svg> 送信中...';
+
+  const body = currentType === 'jp' ? gatherJP() : gatherForeign();
+  const subject = currentType === 'jp'
+    ? '【入居申込】日本国籍 — ' + v('jp-name')
+    : '【入居申込】外国籍 — ' + v('f-name') + ' (' + v('f-nationality') + ')';
+
+  try {
+    const res = await fetch('https://formspree.io/f/xwpbelod', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify({ _subject: subject, message: body, _replyto: currentType === 'jp' ? v('jp-email') : v('f-email') })
+    });
+    if (res.ok) {
+      showThankYou();
+    } else {
+      throw new Error('server error');
+    }
+  } catch (e) {
+    // Fallback: open mail client
+    const mailto = `mailto:Tokyorentalhome@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    window.location.href = mailto;
+    showThankYou();
+  }
+}
+
+function showThankYou() {
+  document.getElementById('form-wrap').style.display = 'none';
+  document.getElementById('thank-you').style.display = 'flex';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+/* spin animation */
+const style = document.createElement('style');
+style.textContent = '@keyframes spin { to { transform: rotate(360deg); } }';
+document.head.appendChild(style);
+</script>
+</body>
+</html>
