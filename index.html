@@ -747,7 +747,7 @@ async function submitForm() {
     : '【入居申込】外国籍 — ' + v('f-name') + ' (' + v('f-nationality') + ')';
 
   try {
-    const res = await fetch('https://formspree.io/f/xwpbelod', {
+    const res = await fetch('https://formspree.io/f/mkoeyanj', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
       body: JSON.stringify({ _subject: subject, message: body, _replyto: currentType === 'jp' ? v('jp-email') : v('f-email') })
