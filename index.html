@@ -747,11 +747,12 @@ async function submitForm() {
     : '【入居申込】外国籍 — ' + v('f-name') + ' (' + v('f-nationality') + ')';
   const replyto = currentType === 'jp' ? v('jp-email') : v('f-email');
 
+  const validEmail = (replyto && replyto !== '—' && replyto.includes('@')) ? replyto : 'noreply@tokyorentalhome.com';
   const formData = new FormData();
   formData.append('_subject', subject);
   formData.append('message', content);
-  formData.append('_replyto', replyto);
-  formData.append('email', replyto);
+  formData.append('_replyto', validEmail);
+  formData.append('email', validEmail);
 
   try {
     const res = await fetch('https://formspree.io/f/mkoeyanj', {
